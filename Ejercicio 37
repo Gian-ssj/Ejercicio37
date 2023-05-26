@@ -1,0 +1,44 @@
+#include <Wire.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <LiquidCrystal_I2C.h>
+
+Adafruit_MPU6050 mpu;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+const int buzzerPin = 9;  // Pin para el buzzer o altavoz
+
+void setup() {
+  lcd.begin(16, 2);
+  lcd.print("Laberinto!");
+  Serial.begin(9600);
+
+  if (!mpu.begin()) {
+    lcd.clear();
+    lcd.print("Error!");
+    while (1);
+  }
+
+  mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
+  pinMode(buzzerPin, OUTPUT);
+}
+
+void loop() {
+  sensors_event_t event;
+  mpu.getEvent(&event);
+
+  float xAngle = event.acceleration.x / 9.81;
+  float yAngle = event.acceleration.y / 9.81;
+
+  // Detectar colisión con los bordes del laberinto
+  if (xAngle > 1.5 || xAngle < -1.5 || yAngle > 1.5 || yAngle < -1.5) {
+    lcd.clear();
+    lcd.print("Perdiste!");
+    tone(buzzerPin, 1000, 500);
+    delay(2000);
+    lcd.clear();
+    lcd.print("Laberinto!");
+    delay(1000);
+  }
+
+  // Imprimir los
